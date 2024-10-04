@@ -3,57 +3,45 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
-
-func SetLogger() {
-	logger := slog.New(
-		NewStackTraceLogHandler(
-			slog.NewJSONHandler(os.Stderr, nil),
-		),
-	)
-	slog.SetDefault(logger)
-}
-
-type StackTraceLogHandler struct {
-	slog.Handler
-}
-
-func NewStackTraceLogHandler(h slog.Handler) StackTraceLogHandler {
-	return StackTraceLogHandler{h}
-}
-
-func (h StackTraceLogHandler) Handle(ctx context.Context, r slog.Record) error {
-	if r.Level != slog.LevelError {
-		return h.Handler.Handle(ctx, r)
-	}
-	// fileの行数を追加
-	pt, file, line, _ := runtime.Caller(3)
-	funcName := runtime.FuncForPC(pt).Name()
-	r.AddAttrs(slog.String("call", fmt.Sprintf("%s:%d %s", file, line, funcName)))
-	return h.Handler.Handle(ctx, r)
-}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
+	otelShutdown, err := setupOTelSDK(ctx)
+	if err != nil {
+		slog.Error("setupOTelSDK", "err", err)
+		return
+	}
+	defer func() {
+		otelShutdown(context.Background())
+	}()
+
 	SetLogger()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	// wrap the handler function with otelhttp.WithRouteTag
+	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+		// Configure the "http.route" for the HTTP instrumentation.
+		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		mux.Handle(pattern, handler)
+	}
+	handleFunc("GET /unko", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.Context()
-		slog.Info("GET /")
-		w.WriteHeader(http.StatusNoContent)
+		slog.Info("GET /unko")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("unko\n"))
 	})
 	srv := &http.Server{
 		Addr:    "0.0.0.0:8000",
-		Handler: mux,
+		Handler: otelhttp.NewHandler(mux, "/"),
 	}
 
 	go func() {
