@@ -9,20 +9,24 @@ import (
 	"os/signal"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	otelShutdown, err := setupOTelSDK(ctx)
+	exp, err := newExporter(ctx)
 	if err != nil {
-		slog.Error("setupOTelSDK", "err", err)
-		return
+		slog.Error("newExporter", "err", err)
 	}
+	tp := newTraceProvider(exp)
 	defer func() {
-		otelShutdown(context.Background())
+		tp.Shutdown(ctx)
 	}()
+
+	otel.SetTracerProvider(tp)
+	tracer = tp.Tracer("example.io/package/name")
 
 	SetLogger()
 

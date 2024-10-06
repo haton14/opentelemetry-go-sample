@@ -8,3 +8,4 @@ services:
       - "14250:14250"
     environment:
       - LOG_LEVEL=debug
+      - COLLECTOR_OTLP_ENABLED=true
