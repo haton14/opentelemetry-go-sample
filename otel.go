@@ -13,7 +13,7 @@ import (
 var tracer trace.Tracer
 
 func newExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
-	return otlptracegrpc.New(ctx)
+	return otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint("tomato.ghost-algieba.ts.net:4317"))
 }
 
 func newTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
