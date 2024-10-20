@@ -18,6 +18,9 @@ services:
       - ES_VERSION=7
     networks:
       - otlp-net
+    depends_on:
+      opensearch:
+        condition: service_healthy
 
   opensearch:
     image: opensearchproject/opensearch:2.17.1
