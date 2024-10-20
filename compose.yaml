@@ -7,15 +7,15 @@ services:
       - "4318:4318"
       - "14250:14250"
     environment:
-      - LOG_LEVEL: debug
-      - COLLECTOR_OTLP_ENABLED: true
-      - SPAN_STORAGE_TYPE: "elasticsearch"
-      - ES_SERVER_URLS: http://opensearch:9200
-      - ES_USERNAME: master
-      - ES_PASSWORD: replace_me
-      - ES_TLS_SKIP_HOST_VERIFY: "true"
-      - ES_TLS_ENABLED: "true"
-      - ES_VERSION: "7"
+      - LOG_LEVEL=debug
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://opensearch:9200
+      - ES_USERNAME=master
+      - ES_PASSWORD=replace_me
+      - ES_TLS_SKIP_HOST_VERIFY=true
+      - ES_TLS_ENABLED=true
+      - ES_VERSION=7
     networks:
       - otlp-net
 
