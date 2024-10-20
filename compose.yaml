@@ -9,3 +9,35 @@ services:
     environment:
       - LOG_LEVEL=debug
       - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE: "elasticsearch"
+      - ES_SERVER_URLS: http://opensearch:9200
+      - ES_USERNAME: master
+      - ES_PASSWORD: replace_me
+      - ES_TLS_SKIP_HOST_VERIFY: "true"
+      - ES_TLS_ENABLED: "true"
+      - ES_VERSION: "7"
+    networks:
+      - otlp-net
+
+  opensearch:
+    image: opensearchproject/opensearch:2.17.1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 2s
+      timeout: 60s
+      retries: 20
+    environment:
+      - discovery.type=single-node
+      - network.host=0.0.0.0
+      - ELASTIC_PASSWORD=replace_me
+      - ELASTIC_USERNAME=master
+      - plugins.security.disabled=true
+    networks:
+      - otlp-net
+
+networks:
+  otlp-net:
+    driver: bridge
