@@ -35,6 +35,7 @@ services:
       - ELASTIC_PASSWORD=replace_me
       - ELASTIC_USERNAME=master
       - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=super_strong_password_admin
     networks:
       - otlp-net
 
