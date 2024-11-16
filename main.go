@@ -34,10 +34,10 @@ func main() {
 	// wrap the handler function with otelhttp.WithRouteTag
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
 		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		handler := otelhttp.NewHandler(otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc)), pattern)
 		mux.Handle(pattern, handler)
 	}
-	handleFunc("GET /unko", func(w http.ResponseWriter, r *http.Request) {
+	handleFunc("/unko", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.Context()
 		slog.Info("GET /unko")
 		w.WriteHeader(http.StatusOK)
@@ -45,7 +45,7 @@ func main() {
 	})
 	srv := &http.Server{
 		Addr:    "0.0.0.0:8000",
-		Handler: otelhttp.NewHandler(mux, "/"),
+		Handler: mux,
 	}
 
 	go func() {
