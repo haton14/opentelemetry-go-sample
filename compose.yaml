@@ -54,6 +54,8 @@ services:
     depends_on:
       - opensearch
     restart: always
+    networks:
+      - otlp-net
 
 networks:
   otlp-net:
