@@ -43,7 +43,7 @@ func main() {
 		handler := otelhttp.NewHandler(otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc)), pattern)
 		mux.Handle(pattern, handler)
 	}
-	handleFunc("/unko", func(w http.ResponseWriter, r *http.Request) {
+	handleFunc("GET /unko", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.Context()
 		slog.Info("GET /unko")
 		w.WriteHeader(http.StatusOK)

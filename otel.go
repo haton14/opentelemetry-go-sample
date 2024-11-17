@@ -22,7 +22,7 @@ func newTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
 		resource.Default(),
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceName("ExampleService"),
+			semconv.ServiceName("go-otlp"),
 		),
 	)
 

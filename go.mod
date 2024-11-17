@@ -12,6 +12,8 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
+	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.2 // indirect
+	github.com/uptrace/opentelemetry-go-extra/otelsqlx v0.3.2 // indirect
 )
 
 require (
