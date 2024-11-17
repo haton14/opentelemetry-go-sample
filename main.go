@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -29,6 +30,11 @@ func main() {
 	tracer = tp.Tracer("example.io/package/name")
 
 	SetLogger()
+	db, err := connectDB()
+	if err != nil {
+		slog.Error("connectDB", "err", err)
+		return
+	}
 
 	mux := http.NewServeMux()
 	// wrap the handler function with otelhttp.WithRouteTag
@@ -42,6 +48,26 @@ func main() {
 		slog.Info("GET /unko")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("unko\n"))
+	})
+	handleFunc("/books", func(w http.ResponseWriter, r *http.Request) {
+		type Book struct {
+			ID    int    `json:"id" db:"id"`
+			Title string `json:"title" db:"title"`
+		}
+		books := []Book{}
+		if err := db.SelectContext(r.Context(), &books, "SELECT * FROM book"); err != nil {
+			slog.Error("SelectContext", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		slog.Info("GET /books", "books", books)
+		err = json.NewEncoder(w).Encode(books)
+		if err != nil {
+			slog.Error("json.NewEncoder", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	})
 	srv := &http.Server{
 		Addr:    "0.0.0.0:8000",
