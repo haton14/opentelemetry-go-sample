@@ -10,7 +10,7 @@ services:
       - LOG_LEVEL=debug
       - COLLECTOR_OTLP_ENABLED=true
       - SPAN_STORAGE_TYPE=elasticsearch
-      - ES_SERVER_URLS=http://opensearch:9200
+      - ES_SERVER_URLS=http://elasticsearch:9200
       - ES_USERNAME=master
       - ES_PASSWORD=replace_me
       - ES_TLS_SKIP_HOST_VERIFY=true
@@ -19,11 +19,11 @@ services:
     networks:
       - otlp-net
     depends_on:
-      opensearch:
+      elasticsearch:
         condition: service_healthy
 
-  opensearch:
-    image: opensearchproject/opensearch:2.17.1
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.0
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -37,8 +37,8 @@ services:
       - network.host=0.0.0.0
       - ELASTIC_PASSWORD=replace_me
       - ELASTIC_USERNAME=master
-      - plugins.security.disabled=true
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ng!Password
+      # - plugins.security.disabled=true
+      # - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ng!Password
     networks:
       - otlp-net
 
@@ -48,11 +48,11 @@ services:
     ports:
       - 5601:5601
     environment:
-      - ELASTICSEARCH_HOSTS=http://opensearch:9200
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=master
       - ELASTICSEARCH_PASSWORD=replace_me
     depends_on:
-      - opensearch
+      - elasticsearch
     restart: always
     networks:
       - otlp-net
