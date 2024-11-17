@@ -50,7 +50,9 @@ services:
     expose:
       - '5601'
     environment:
-      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - EOPENSEARCH_USERNAME=master
+      - OPENSEARCH_PASSWORD=replace_me
     networks:
       - otlp-net
 
