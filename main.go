@@ -17,6 +17,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
+	// set up opentelemetry
 	exp, err := newExporter(ctx)
 	if err != nil {
 		slog.Error("newExporter", "err", err)
@@ -25,9 +26,7 @@ func main() {
 	defer func() {
 		tp.Shutdown(ctx)
 	}()
-
 	otel.SetTracerProvider(tp)
-	tracer = tp.Tracer("example.io/package/name")
 
 	SetLogger()
 	db, err := connectDB()
