@@ -10,7 +10,7 @@ services:
       - LOG_LEVEL=debug
       - COLLECTOR_OTLP_ENABLED=true
       - SPAN_STORAGE_TYPE=elasticsearch
-      - ES_SERVER_URLS=http://opensearch:9200
+      - ES_SERVER_URLS=http://opensearch-node:9200
       - ES_USERNAME=master
       - ES_PASSWORD=replace_me
       - ES_TLS_SKIP_HOST_VERIFY=true
@@ -19,43 +19,50 @@ services:
     networks:
       - otlp-net
     depends_on:
-      opensearch:
+      opensearch-node:
         condition: service_healthy
 
-  opensearch:
-    image: opensearchproject/opensearch:2.17.1
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 2s
-      timeout: 60s
-      retries: 20
+  opensearch-node:
+    image: opensearchproject/opensearch:2.18.0
+    restart: always
+    container_name: opensearch-node
     environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node
       - discovery.type=single-node
-      - network.host=0.0.0.0
+      - bootstrap.memory_lock=true
       - ELASTIC_PASSWORD=replace_me
       - ELASTIC_USERNAME=master
-      - plugins.security.ssl.http.enabled=false
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ng!Password
+      - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m'
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=UserFeedback123!@#
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ./volumes/opensearch:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
     networks:
       - otlp-net
 
+  # optional for opensearch
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.17.1
+    image: opensearchproject/opensearch-dashboards:2.18.0
+    restart: always
     container_name: opensearch-dashboards
     ports:
       - 5601:5601
-    expose:
-      - '5601'
     environment:
-      - OPENSEARCH_HOSTS=http://opensearch:9200
-      - OPENSEARCH_USERNAME=master
-      - OPENSEARCH_PASSWORD=replace_me
-      # - plugins.security.disabled=true
-      # - DISABLE_SECURITY_PLUGIN=true
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ng!Password
+      - 'OPENSEARCH_HOSTS=["http://opensearch-node:9200"]'
+      - 'DISABLE_SECURITY_DASHBOARDS_PLUGIN=true'
+    depends_on:
+      - opensearch-node
     networks:
       - otlp-net
 
